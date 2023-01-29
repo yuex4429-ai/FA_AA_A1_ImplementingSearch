@@ -8,7 +8,7 @@ For FU-Berlin students I recommend looking [ssh tutorial](https://github.com/seq
 ### Cloning (very cool)
 To checkout the code you can run:
   + `git clone --recurse-submodules https://github.com/SGSSGene/ImplementingSearch`
-  
+
 ### gitpod:
 Lets say you are not an fu-student and don't have access to an linux machine, you can also use gitpod, which provides an online ide:
   + https://gitpod.io/#https://github.com/SGSSGene/ImplementingSearch
@@ -26,6 +26,8 @@ $ ./bin/suffixarray_search --reference ../data/hg38_partial.fasta.gz --query ../
 
 $ ./bin/fmindex_construct --reference ../data/hg38_partial.fasta.gz --index myIndex.index # creates an index, see src/fmindex_construct.cpp
 $ ./bin/fmindex_search --index myIndex.index --query ../data/illumina_reads_40.fasta.gz   # searches by using the fmindex, see src/fmindex_search.cpp
+
+$ ./bin/fmindex_pigeon_search --index myIndex.index --query ../data/illumina_reads_40.fasta.gz   # searches by using the fmindex, see src/fmindex_pigeon_search.cpp
 ```
 
 
@@ -54,8 +56,9 @@ to an fm-index based search.
 5. Which search is more memory efficient?
   + Check different query lengths: 40, 60, 80, 100.
 6. FMIndex with errors:
-   Use the pigeon hole principle to search for stuff with up to 2 errors.
-   Very free programming exercise.
+  + Configure the fmindex_search to search with up to 2 errors
+  + Implement `src/fmindex_pigeon_search.cpp` and use error free fmindex and use the pigeon hole principle to search for stuff with up to 2 errors.
+  + Compare run times between fmindex_search and fmindex_pigeon_search with up to 2 errors.
 
 ### Hints:
   + Look at this tutorial for more information on how seqan3 and the fmindex works: https://docs.seqan.de/seqan/learning-resources/fm_index.html
