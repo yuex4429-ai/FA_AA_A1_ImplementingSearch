@@ -27,7 +27,7 @@ $ ./bin/suffixarray_search --reference ../data/hg38_partial.fasta.gz --query ../
 $ ./bin/fmindex_construct --reference ../data/hg38_partial.fasta.gz --index myIndex.index # creates an index, see src/fmindex_construct.cpp
 $ ./bin/fmindex_search --index myIndex.index --query ../data/illumina_reads_40.fasta.gz   # searches by using the fmindex, see src/fmindex_search.cpp
 
-$ ./bin/fmindex_pigeon_search --index myIndex.index --query ../data/illumina_reads_40.fasta.gz   # searches by using the fmindex, see src/fmindex_pigeon_search.cpp
+$ ./bin/fmindex_pigeon_search --reference ../data/hg38_partial.fasta.gz --index myIndex.index --query ../data/illumina_reads_40.fasta.gz   # searches by using the fmindex, see src/fmindex_pigeon_search.cpp
 ```
 
 
