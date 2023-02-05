@@ -19,6 +19,9 @@ int main(int argc, char const* const* argv) {
     auto query_file = std::filesystem::path{};
     parser.add_option(query_file, '\0', "query", "path to the query file");
 
+    auto number_of_queries = size_t{100};
+    parser.add_option(number_of_queries, '\0', "query_ct", "number of query, if not enough queries, these will be duplicated");
+
     try {
          parser.parse();
     } catch (seqan3::argument_parser_error const& ext) {
@@ -46,10 +49,15 @@ int main(int argc, char const* const* argv) {
         seqan3::debug_stream << "done\n";
     }
 
-    seqan3::configuration const cfg = seqan3::search_cfg::max_error_total{seqan3::search_cfg::error_count{0}};
+    // duplicate input until its large enough
+    while (queries.size() < number_of_queries) {
+        auto old_count = queries.size();
+        queries.resize(2 * old_count);
+        std::copy_n(queries.begin(), old_count, queries.begin() + old_count);
+    }
+    queries.resize(number_of_queries); // will reduce the amount of searches
 
-    //!TODO here adjust the number of searches
-    queries.resize(100); // will reduce the amount of searches
+    seqan3::configuration const cfg = seqan3::search_cfg::max_error_total{seqan3::search_cfg::error_count{0}};
 
 
     //!TODO !ImplementMe use the seqan3::search to find a partial error free hit, verify the rest inside the text
