@@ -3,7 +3,7 @@
 This is an exercise to demonstrate the power of Suffix-Array and FM-Index based searching.
 
 ## Usage
-For FU-Berlin students I recommend looking [ssh tutorial](https://github.com/seqan/seqan3/wiki/SSH) to log into our compute servers. I recommend using compute12.mi.fu-berlin.de. Also for longer running processes I can advice looking at this [tmux tutorial](https://github.com/seqan/seqan3/wiki/tmux) for some basic instructions.
+For FU-Berlin students I recommend looking [ssh tutorial](https://github.com/seqan/seqan3/wiki/SSH) to log into our compute servers. I recommend using compute01-compute09 (e.g. compute04.mi.fu-berlin.de ). Also for longer running processes I can advice looking at this [tmux tutorial](https://github.com/seqan/seqan3/wiki/tmux) for some basic instructions.
 
 ### Cloning (very cool)
 To checkout the code you can run:
