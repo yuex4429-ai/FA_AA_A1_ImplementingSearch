@@ -1,76 +1,36 @@
-name: CI on Linux
+# SPDX-FileCopyrightText: 2006-2023, Knut Reinert & Freie Universität Berlin
+# SPDX-FileCopyrightText: 2016-2023, Knut Reinert & MPI für molekulare Genetik
+# SPDX-License-Identifier: CC0-1.0
+name: "Linux"
 
 on:
   push:
     branches:
-      # Push events to branches matching refs/heads/master
       - 'main'
   pull_request:
 
-env:
-  CMAKE_VERSION: 3.8.2
-  SEQAN3_NO_VERSION_CHECK: 1
-  TZ: Europe/Berlin
-
-defaults:
-  run:
-    shell: bash -ex {0}
+concurrency:
+  group: linux-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
-    name: ${{ matrix.name }}
-    runs-on: ubuntu-20.04
-    timeout-minutes: 120
+    name: ${{ matrix.compiler }}
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
-        include:
-          - name: "gcc11"
-            cxx: "g++-11"
-            cc: "gcc-11"
-            build_type: Release
-
-          - name: "gcc10"
-            cxx: "g++-10"
-            cc: "gcc-10"
-            build_type: Release
-
+        compiler:
+          - gcc13-cpp20-release
+          - gcc12-cpp20-release
+          - gcc11-cpp20-release
+          - gcc13-cpp20-debug-sanitize_address
+          - gcc13-cpp20-debug-sanitize_undefined
+          - clang17-cpp20-release
     steps:
-      - name: Set repository name
-        run: echo "REPOSITORY_NAME=$(echo '${{ github.repository }}' | awk -F '/' '{print $2}')" >> $GITHUB_ENV
-
-      - name: Checkout
-        uses: actions/checkout@v2
+      - name: Standard IV-project testing
+        uses: iv-project/IVaction/linux-testing@v7
         with:
-          path: ${{ env.REPOSITORY_NAME }}
-          fetch-depth: 2
-          submodules: recursive
-
-      - name: Add package source
-        run: bash ./${{ env.REPOSITORY_NAME }}/lib/seqan3/.github/workflows/scripts/configure_apt.sh
-
-      - name: Install CMake
-        run: bash ./${{ env.REPOSITORY_NAME }}/lib/seqan3/.github/workflows/scripts/install_cmake.sh
-
-      - name: Install compiler ${{ matrix.cxx }}
-        run: sudo apt-get install --yes ${{ matrix.cxx }}
-
-      - name: Tool versions
-        run: |
-          env cmake --version
-          env ${{ matrix.cxx }} --version
-
-      - name: Configure tests
-        env:
-          CXX: ${{ matrix.cxx }}
-          CC: ${{ matrix.cc }}
-        run: |
-          mkdir build
-          cd build
-          cmake ../${{ env.REPOSITORY_NAME }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
-                                              -DCMAKE_CXX_FLAGS="${{ matrix.cxx_flags }}"
-
-      - name: Build application
-        run: |
-          cd build
-          make -k -j2
+          compiler: ${{ matrix.compiler }}
+          threads: 2
