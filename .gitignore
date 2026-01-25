@@ -1,0 +1,11 @@
+
+# large local datasets
+/data/
+*.fasta
+*.fa
+*.fna
+*.fastq
+*.fq
+*.gz
+/build/
+/results/
