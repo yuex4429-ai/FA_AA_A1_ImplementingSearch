@@ -1,0 +1,9 @@
+Building Suffix Array...
+Index Construction time: 8.96617 seconds.
+Starting Suffix Array Search for 10000 queries...
+Search Finished!
+Total Matches Found: 4456
+Search time: 0.0759682 seconds.
+__PEAK_RSS_TOTAL_KB__=610316
+__PEAK_RSS_MAIN_KB__=610316
+__INNER_RC__=0

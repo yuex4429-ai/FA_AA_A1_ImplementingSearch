@@ -1,29 +1,32 @@
-cmake_minimum_required (VERSION 3.8)
+cmake_minimum_required(VERSION 3.18) 
+project(ImplementingSearch VERSION 1.0.0 LANGUAGES CXX)
 
-## CUSTOMISE
-
-# Define the application name and version.
-project (ImplementingSearch VERSION 1.0.0)
-
-## BUILD
-
-# Make Release default build type
+## BUILD TYPE
 if (NOT CMAKE_BUILD_TYPE)
-    set (CMAKE_BUILD_TYPE Release CACHE STRING
-         "Choose the type of build, options are: Debug Release Coverage RelWithDebInfo MinSizeRel."
-         FORCE)
-endif ()
+    set(CMAKE_BUILD_TYPE Release CACHE STRING
+        "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel."
+        FORCE)
+endif()
 
-# Specify the directories where to store the built archives, libraries and executables
-set (CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
-set (CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
-set (CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
+## OUTPUT DIRS
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 
-# Dependency: SeqAn3.
-find_package (SeqAn3 QUIET REQUIRED HINTS lib/seqan3/build_system)
+## C++ STANDARD (SeqAn3 requires C++20)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
-# Add libraries and applications
-option(BUILD_EXAMPLES "" OFF) # don't build any libdivsufsort examples
+## Dependency: SeqAn3
+
+find_package(seqan3 3.2 REQUIRED
+    HINTS "${CMAKE_CURRENT_LIST_DIR}/lib/seqan3/build_system"
+)
+
+## Dependency: libdivsufsort
+option(BUILD_EXAMPLES "" OFF)
 add_subdirectory(lib/libdivsufsort)
 
+## Your targets
 add_subdirectory(src)

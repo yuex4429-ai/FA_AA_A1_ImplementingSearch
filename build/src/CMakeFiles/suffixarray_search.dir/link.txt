@@ -1,0 +1,1 @@
+/usr/bin/c++ -O3 -DNDEBUG CMakeFiles/suffixarray_search.dir/suffixarray_search.cpp.o -o ../bin/suffixarray_search  -Wl,-rpath,/mnt/d/xy_work/FU_work/FA/Advanced_Algrothnm/assignment2/ImplementingSearch/build/lib ../lib/libdivsufsort.so.3.0.1 /usr/lib/x86_64-linux-gnu/libz.so /usr/lib/x86_64-linux-gnu/libbz2.so -lrt 

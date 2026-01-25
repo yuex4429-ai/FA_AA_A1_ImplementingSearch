@@ -1,0 +1,9 @@
+Algorithm,Reference,Query_File,Query_Len,Query_Count,Errors,Threads,Repeat,Index_Time_s,Search_Time_s,Wall_Time_s,Max_RSS_KB,Peak_Total_RSS_KB,Peak_Main_RSS_KB,Exit_Code
+naive_search,data/hg38_partial.fasta.gz,illumina_reads_100.fasta.gz,100,1000,0,14,1,,13.1678,14.02,219520,219520,219520,0
+suffixarray_search,data/hg38_partial.fasta.gz,illumina_reads_100.fasta.gz,100,1000,0,1,1,8.25071,0.009306,9.08,610320,,,1
+fmindex_search,data/hg38_partial.fasta.gz,illumina_reads_100.fasta.gz,100,1000,0,1,1,13.0349,0.037174,13.86,1057660,1050620,1050620,0
+fmindex_pigeon_search,data/hg38_partial.fasta.gz,illumina_reads_100.fasta.gz,100,1000,0,1,1,13.2761,0.0458391,14.24,1061004,1054732,1061004,0
+naive_search,data/hg38_partial.fasta.gz,illumina_reads_100.fasta.gz,100,10000,0,14,1,,1159.91,1160.73,219528,,,1
+suffixarray_search,data/hg38_partial.fasta.gz,illumina_reads_100.fasta.gz,100,10000,0,1,1,8.96617,0.0759682,9.99,610316,610316,610316,0
+fmindex_search,data/hg38_partial.fasta.gz,illumina_reads_100.fasta.gz,100,10000,0,1,1,14.2714,0.329828,15.53,1057532,1050492,1050492,0
+fmindex_pigeon_search,data/hg38_partial.fasta.gz,illumina_reads_100.fasta.gz,100,10000,0,1,1,14.294,0.411896,15.64,1061004,1054732,1054732,0

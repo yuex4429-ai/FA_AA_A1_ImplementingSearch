@@ -1,0 +1,6 @@
+Building Suffix Array...
+Index Construction time: 8.25071 seconds.
+Starting Suffix Array Search for 1000 queries...
+Search Finished!
+Total Matches Found: 448
+Search time: 0.009306 seconds.

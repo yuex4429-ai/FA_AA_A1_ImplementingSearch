@@ -1,0 +1,71 @@
+	Command being timed: "bash -c 
+    set -euo pipefail
+
+    "$@" &           # run program in background
+    pid=$!
+
+    peak_total=0
+    peak_main=0
+
+    get_main_rss_kb() {
+      local p="$1"
+      if [ -r "/proc/${p}/status" ]; then
+        awk "/^VmRSS:/ {print \$2+0}" "/proc/${p}/status" 2>/dev/null || echo 0
+      else
+        echo 0
+      fi
+    }
+
+    # Sum RSS (KB) for pid + children + grandchildren
+    get_total_rss_kb() {
+      local p="$1"
+      local c g
+      c=$(pgrep -P "$p" 2>/dev/null || true)
+      g=""
+      if [ -n "$c" ]; then
+        g=$(echo "$c" | xargs -r -n1 pgrep -P 2>/dev/null || true)
+      fi
+      ps -o rss= -p "$p" $c $g 2>/dev/null | awk "{s+=\$1} END{print s+0}"
+    }
+
+    while kill -0 "$pid" 2>/dev/null; do
+      cur_main=$(get_main_rss_kb "$pid")
+      cur_total=$(get_total_rss_kb "$pid")
+      if [ "$cur_main"  -gt "$peak_main"  ]; then peak_main="$cur_main"; fi
+      if [ "$cur_total" -gt "$peak_total" ]; then peak_total="$cur_total"; fi
+      sleep "0.05"
+    done
+
+    set +e
+    wait "$pid"
+    rc=$?
+    set -e
+
+    echo "__PEAK_RSS_TOTAL_KB__=${peak_total}" 1>&2
+    echo "__PEAK_RSS_MAIN_KB__=${peak_main}"   1>&2
+    echo "__INNER_RC__=${rc}"                  1>&2
+
+    exit 0
+   _ ./build/bin/fmindex_pigeon_search --reference data/hg38_partial.fasta.gz --query data/illumina_reads_100.fasta.gz --query_ct 10000 --errors 0 --threads 1"
+	User time (seconds): 16.63
+	System time (seconds): 2.20
+	Percent of CPU this job got: 120%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:15.64
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 1061004
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 45
+	Minor (reclaiming a frame) page faults: 750651
+	Voluntary context switches: 6037
+	Involuntary context switches: 27
+	Swaps: 0
+	File system inputs: 1568
+	File system outputs: 0
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
