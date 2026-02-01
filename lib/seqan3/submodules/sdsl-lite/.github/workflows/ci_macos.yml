@@ -1,0 +1,93 @@
+name: macOS
+
+on:
+  push:
+    branches:
+      # Push events to branches matching refs/heads/master
+      - 'master'
+  pull_request:
+  # Enables a manual trigger, may run on any branch
+  workflow_dispatch:
+
+concurrency:
+  group: macos-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  TZ: Europe/Berlin
+
+defaults:
+  run:
+    shell: bash -Eexuo pipefail {0}
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: macos-12
+    timeout-minutes: 120
+    if: github.repository_owner == 'xxsds' || github.event_name == 'workflow_dispatch'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: "clang16"
+            compiler: "clang-16"
+            build_type: Release
+            cxx_flags: "-std=c++2b"
+
+          - name: "cereal clang16"
+            compiler: "clang-16"
+            build_type: Release
+            cxx_flags: "-std=c++2b"
+            has_cereal: "1"
+
+          - name: "clang15"
+            compiler: "clang-15"
+            build_type: Release
+            cxx_flags: "-std=c++2b"
+
+          - name: "clang14"
+            compiler: "clang-14"
+            build_type: Release
+            cxx_flags: "-std=c++20"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+          submodules: true
+
+      - name: Setup toolchain
+        uses: seqan/actions/setup-toolchain@main
+        with:
+          compiler: ${{ matrix.compiler }}
+          ccache_size: 75M
+
+      - name: Install CMake
+        uses: seqan/actions/setup-cmake@main
+        with:
+          cmake: 3.12.4
+
+      - name: Configure tests
+        run: |
+          mkdir ci-build
+          cd ci-build
+          cmake .. -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+                   -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+                   -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+                   -DCMAKE_CXX_FLAGS="-pedantic -Wall -Wextra -Werror ${{ matrix.cxx_flags }}" \
+                   -DSDSL_CEREAL=${{ matrix.has_cereal }}
+          make -j3 gtest_build
+
+      - name: Build tests
+        run: |
+          ccache -p
+          cd ci-build
+          make sdsl_test_targets sdsl_examples sdsl_tutorials -k -j3
+          ccache -s
+
+      - name: Run tests
+        run: |
+          cd ci-build
+          ctest . -j3

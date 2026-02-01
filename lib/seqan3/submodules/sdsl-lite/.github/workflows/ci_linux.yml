@@ -1,0 +1,114 @@
+name: Linux
+
+on:
+  push:
+    branches:
+      # Push events to branches matching refs/heads/master
+      - 'master'
+  pull_request:
+  # Enables a manual trigger, may run on any branch
+  workflow_dispatch:
+
+concurrency:
+  group: linux-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  TZ: Europe/Berlin
+
+defaults:
+  run:
+    shell: bash -Eexuo pipefail {0}
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-22.04
+    timeout-minutes: 120
+    if: github.repository_owner == 'xxsds' || github.event_name == 'workflow_dispatch'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: "gcc13"
+            compiler: "gcc-13"
+            build_type: Release
+            cxx_flags: "-std=c++23"
+
+          - name: "cereal gcc13"
+            compiler: "gcc-13"
+            build_type: Release
+            cxx_flags: "-std=c++23"
+            has_cereal: "1"
+
+          - name: "gcc12"
+            compiler: "gcc-12"
+            build_type: Release
+            cxx_flags: "-std=c++23"
+
+          - name: "gcc11"
+            compiler: "gcc-11"
+            build_type: Release
+            cxx_flags: "-std=c++23"
+
+          - name: "clang16"
+            compiler: "clang-16"
+            build_type: Release
+            cxx_flags: "-std=c++2b"
+
+          - name: "cereal clang16"
+            compiler: "clang-16"
+            build_type: Release
+            cxx_flags: "-std=c++2b"
+            has_cereal: "1"
+
+          - name: "clang15"
+            compiler: "clang-15"
+            build_type: Release
+            cxx_flags: "-std=c++2b"
+
+          - name: "clang14"
+            compiler: "clang-14"
+            build_type: Release
+            cxx_flags: "-std=c++20"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+          submodules: true
+
+      - name: Setup toolchain
+        uses: seqan/actions/setup-toolchain@main
+        with:
+          compiler: ${{ matrix.compiler }}
+          ccache_size: 75M
+
+      - name: Install CMake
+        uses: seqan/actions/setup-cmake@main
+        with:
+          cmake: 3.12.4
+
+      - name: Configure tests
+        run: |
+          mkdir ci-build
+          cd ci-build
+          cmake .. -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+                   -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+                   -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+                   -DCMAKE_CXX_FLAGS="-pedantic -Wall -Wextra -Werror ${{ matrix.cxx_flags }}" \
+                   -DSDSL_CEREAL=${{ matrix.has_cereal }}
+          make -j2 gtest_build
+
+      - name: Build tests
+        run: |
+          ccache -p
+          cd ci-build
+          make sdsl_test_targets sdsl_examples sdsl_tutorials -k -j2
+          ccache -s
+
+      - name: Run tests
+        run: |
+          cd ci-build
+          ctest . -j2

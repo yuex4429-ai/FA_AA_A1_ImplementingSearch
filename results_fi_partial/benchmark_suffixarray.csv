@@ -1,0 +1,10 @@
+Mode,Reference,Index,Query_File,Query_Len,Query_Count,Index_Time_s,Search_Time_s,Wall_Time_s,Max_RSS_kB,Hits,Exit
+construct,data/hg38_refseq_GCF_000001405.26_GRCh38_genomic.fna.gz,build/indexes/hg38_refseq.sa.bin,NA,NA,NA,0:00.02,NA,127,,NA,
+search,data/hg38_refseq_GCF_000001405.26_GRCh38_genomic.fna.gz,build/indexes/hg38_refseq.sa.bin,data/illumina_reads_100.fasta.gz,100,1000,NA,4264,1,,,
+search,data/hg38_refseq_GCF_000001405.26_GRCh38_genomic.fna.gz,build/indexes/hg38_refseq.sa.bin,data/illumina_reads_100.fasta.gz,100,10000,NA,4320,1,,,
+search,data/hg38_refseq_GCF_000001405.26_GRCh38_genomic.fna.gz,build/indexes/hg38_refseq.sa.bin,data/illumina_reads_100.fasta.gz,100,100000,NA,4264,1,,,
+search,data/hg38_refseq_GCF_000001405.26_GRCh38_genomic.fna.gz,build/indexes/hg38_refseq.sa.bin,data/illumina_reads_100.fasta.gz,100,1000000,NA,4268,1,,,
+search,data/hg38_refseq_GCF_000001405.26_GRCh38_genomic.fna.gz,build/indexes/hg38_refseq.sa.bin,data/illumina_reads_40.fasta.gz,40,1000,NA,4272,1,,,
+search,data/hg38_refseq_GCF_000001405.26_GRCh38_genomic.fna.gz,build/indexes/hg38_refseq.sa.bin,data/illumina_reads_60.fasta.gz,60,1000,NA,4320,1,,,
+search,data/hg38_refseq_GCF_000001405.26_GRCh38_genomic.fna.gz,build/indexes/hg38_refseq.sa.bin,data/illumina_reads_80.fasta.gz,80,1000,NA,4268,1,,,
+search,data/hg38_refseq_GCF_000001405.26_GRCh38_genomic.fna.gz,build/indexes/hg38_refseq.sa.bin,data/illumina_reads_100.fasta.gz,100,1000,NA,4256,1,,,

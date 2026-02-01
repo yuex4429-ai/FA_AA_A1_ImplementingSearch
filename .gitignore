@@ -1,0 +1,12 @@
+build/
+results/
+*.o
+*.a
+*.so
+*.bin
+*.fmidx.*
+*.sa.bin
+*.out
+*.err
+*.time
+.DS_Store
