@@ -1,0 +1,100 @@
+name: Coverage
+
+on:
+  push:
+    branches:
+      - 'master'
+  pull_request:
+    types:
+      - unlabeled
+  workflow_dispatch:
+
+concurrency:
+  group: coverage-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
+
+env:
+  SEQAN3_NO_VERSION_CHECK: 1
+  TZ: Europe/Berlin
+
+defaults:
+  run:
+    shell: bash -Eexuo pipefail {0}
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-22.04
+    timeout-minutes: 120
+    if: github.repository_owner == 'seqan' || github.event_name == 'workflow_dispatch' || github.event.label.name == 'lint'
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - name: "gcc13"
+            compiler: "gcc-13"
+            build: coverage
+            build_type: Debug
+
+    steps:
+      # How many commits do we need to fetch to also fetch the branch point?
+      - name: Get fetch depth
+        id: fetch_depth
+        run: echo "depth=$(( ${{ github.event.pull_request.commits }} + 2 ))" >> $GITHUB_OUTPUT
+
+      - name: Checkout SeqAn3
+        uses: actions/checkout@v4
+        with:
+          path: seqan3
+          fetch-depth: ${{ steps.fetch_depth.outputs.depth }}
+          submodules: true
+
+      - name: Checkout SeqAn2
+        uses: actions/checkout@v4
+        with:
+          repository: seqan/seqan
+          path: seqan3/submodules/seqan
+          fetch-depth: 1
+
+      - name: Setup toolchain
+        uses: seqan/actions/setup-toolchain@main
+        with:
+          compiler: ${{ matrix.compiler }}
+          ccache_size: 525M
+
+      - name: Install CMake
+        uses: seqan/actions/setup-cmake@main
+        with:
+          cmake: 3.16.9
+
+      - name: Install gcovr
+        run: |
+          sudo update-alternatives --install /usr/bin/gcov gcov /usr/bin/${CC/gcc/gcov} 100
+          pip install gcovr==6.0
+
+      - name: Configure tests
+        run: |
+          mkdir seqan3-build
+          cd seqan3-build
+          cmake ../seqan3/test/${{ matrix.build }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+                                                   -DCMAKE_CXX_FLAGS="${{ matrix.cxx_flags }}" \
+                                                   -DSEQAN3_VERBOSE_TESTS=OFF \
+                                                   -DSEQAN3_BENCHMARK_MIN_TIME=0.01 \
+                                                   -DSEQAN3_COVERAGE_PARALLEL_LEVEL=2
+          make -j2 gtest_build
+
+      - name: Build tests
+        env:
+          GCOV: ${{ github.workspace }}/seqan3/.github/workflows/scripts/gcov.sh
+        run: |
+          ccache -z
+          cd seqan3-build
+          make -k -j2
+          ccache -sv
+
+      - name: Submit coverage build
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ${{ github.workspace }}/seqan3-build/seqan3_coverage.xml
+          root_dir: ${{ github.workspace }}/seqan3

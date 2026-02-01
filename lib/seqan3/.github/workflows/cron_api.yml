@@ -1,0 +1,112 @@
+name: API-Stability
+
+on:
+  # Will always run on the default branch
+  schedule:
+    - cron: "0 1 * * SUN"
+  # Enables a manual trigger, may run on any branch
+  workflow_dispatch:
+
+concurrency:
+  group: api-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  SEQAN3_NO_VERSION_CHECK: 1
+  TZ: Europe/Berlin
+  ISSUE: 2746 # Issue number to use for reporting failures
+
+defaults:
+  run:
+    shell: bash -Eexuo pipefail {0}
+
+jobs:
+  build:
+    name: API-Stability gcc${{ matrix.compiler }}
+    runs-on: ubuntu-22.04
+    timeout-minutes: 300
+    if: github.repository_owner == 'seqan' || github.event_name == 'workflow_dispatch'
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler: [11, 12, 13]
+
+    steps:
+      - name: Checkout SeqAn3
+        uses: actions/checkout@v4
+        with:
+          path: seqan3
+          fetch-depth: 1
+          submodules: true
+
+      - name: Checkout SeqAn2
+        uses: actions/checkout@v4
+        with:
+          repository: seqan/seqan
+          path: seqan3/submodules/seqan
+          fetch-depth: 1
+
+      - name: Setup compiler
+        uses: seqan/actions/setup-compiler@main
+        with:
+          compiler: gcc-${{ matrix.compiler }}
+
+      - name: Install CMake
+        uses: seqan/actions/setup-cmake@main
+        with:
+          cmake: 3.16.9
+
+      - name: Configure tests
+        run: |
+          mkdir seqan3-build
+          cd seqan3-build
+          cmake ../seqan3/test/api_stability -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build tests
+        run: |
+          cd seqan3-build
+          CMAKE_BUILD_PARALLEL_LEVEL=2 cmake --build . -- -k 2>&1 | tee build.log
+
+      - name: Setup Python
+        if: ${{ failure() }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Process Log
+        if: ${{ failure() }}
+        run: |
+          FILE="seqan3/.github/ISSUE_TEMPLATE/cron_comment_template.md"
+          python3 seqan3/.github/workflows/scripts/process_compiler_error_log.py seqan3-build/build.log >> $FILE
+
+      - name: Create comment body
+        if: ${{ failure() }}
+        id: comment-body
+        run: |
+          FILE="seqan3/.github/ISSUE_TEMPLATE/cron_comment_template.md"
+          URL="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          sed -i "s@{{ build }}@${{ matrix.build }}@" $FILE
+          sed -i "s@{{ compiler }}@${{ matrix.compiler }}@" $FILE
+          sed -i "s@{{ url }}@$URL@" $FILE
+          echo "body<<EOF" >> $GITHUB_OUTPUT
+          cat $FILE >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Reopen issue
+        if: ${{ failure() }}
+        uses: octokit/request-action@v2.x
+        with:
+          route: PATCH /repos/{owner}/{repo}/issues/{issue_number}
+          owner: ${{ github.repository_owner }}
+          repo: seqan3
+          issue_number: ${{ env.ISSUE }}
+          state: "open"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create comment
+        if: ${{ failure() }}
+        uses: peter-evans/create-or-update-comment@v3
+        with:
+          issue-number: ${{ env.ISSUE }}
+          body: ${{ steps.comment-body.outputs.body }}
